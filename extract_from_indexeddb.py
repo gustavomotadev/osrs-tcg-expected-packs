@@ -101,6 +101,12 @@ def compute_sell_prices(cards):
         cards[i]['credits'] = max(10, cards[i]['score'] // 200)
         cards[i]['foilCredits'] = max(10, cards[i]['foilScore'] // 200)
 
+def fix_ids(cards):
+
+    for i in range(len(cards)):
+
+        cards[i]['id'] = i
+
 if __name__ == '__main__':
 
     with open(INDEXEDDB_FILENAME, 'r') as indexeddb_file:
@@ -136,6 +142,13 @@ if __name__ == '__main__':
         print(f'Unique keys in npcs after cleanup: {get_unique_keys(npcs)}.')
 
     cards = items + npcs
+
+    maxId = cards[0]['id']
+    for card in cards:
+        maxId = max(maxId, card['id'])
+    print(f'Maximum card id before fix: {maxId}.')
+
+    fix_ids(cards)
 
     card_collections = get_collections_from_cards(cards)
 
