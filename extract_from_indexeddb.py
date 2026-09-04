@@ -94,6 +94,13 @@ def add_cards_to_packs(packs, cards, tiers):
                 packs[p]['cards']['rarities'][cards[c]['tierLabel']]['num'] += 1
                 packs[p]['cards']['num'] += 1
 
+def compute_sell_prices(cards):
+
+    for i in range(len(cards)):
+
+        cards[i]['credits'] = max(10, cards[i]['score'] // 200)
+        cards[i]['foilCredits'] = max(10, cards[i]['foilScore'] // 200)
+
 if __name__ == '__main__':
 
     with open(INDEXEDDB_FILENAME, 'r') as indexeddb_file:
@@ -154,6 +161,19 @@ if __name__ == '__main__':
         for tier in ORDERED_TIERS:
             print(f', {pack['cards']['rarities'][tier]['num']} {tier}', end='')
         print('.')
+
+    compute_sell_prices(cards)
+    minNormal = cards[0]['credits']
+    maxNormal = cards[0]['credits']
+    minFoil = cards[0]['foilCredits']
+    maxFoil = cards[0]['foilCredits']
+    for card in cards:
+        minNormal = min(minNormal, card['credits'])
+        maxNormal = max(maxNormal, card['credits'])
+        minFoil = min(minFoil, card['foilCredits'])
+        maxFoil = max(maxFoil, card['foilCredits'])
+    print(f'Credit sell value of regular cards varies from {minNormal} to {maxNormal}.')
+    print(f'Credit sell value of foil cards varies from {minFoil} to {maxFoil}.')
 
     catalog = {'cards': items+npcs, 'packs': packs}
 
