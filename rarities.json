@@ -1,0 +1,13 @@
+{
+    "rarities" :
+    {
+        "Godly": 0.0066, 
+        "Mythic": 0.02, 
+        "Legendary": 0.04, 
+        "Epic": 0.08, 
+        "Rare": 0.16, 
+        "Uncommon": 0.32, 
+        "Common": 0.3734
+    },
+    "Foil": 0.01
+}

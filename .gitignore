@@ -1,2 +1,5 @@
 # ignore indexedDB extracted from the website: "https://www.osrs-tcg.net/cards"
-indexeddb.json
+# indexeddb.json
+
+catalog.json
+calculated.json

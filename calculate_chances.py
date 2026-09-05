@@ -11,13 +11,13 @@ def get_num_cards(packs):
 
     reformated = {}
 
-    for pack in packs:
+    for collection in packs.keys():
 
-        reformated[pack['collectionName']] = {}
+        reformated[collection] = {}
 
         for tier in ORDERED_TIERS:
 
-            reformated[pack['collectionName']][tier] = pack['cards']['rarities'][tier]['num']
+            reformated[collection][tier] = packs[collection]['cards']['rarities'][tier]['num']
 
     return reformated
 
@@ -25,9 +25,9 @@ def get_prices(packs):
 
     reformated = {}
 
-    for pack in packs:
+    for collection in packs.keys():
 
-        reformated[pack['collectionName']] = pack['price']
+        reformated[collection] = packs[collection]['price']
 
     return reformated
 
@@ -42,14 +42,14 @@ def calculate_chances_no_reselling(cards, num_cards, prices):
             tier = cards[i]['tierLabel']
             collections[collection] = {}
 
-            chance_per_card = RARITIES[tier] * (1 / num_cards[collection][tier])
-            collections[collection]['chancePerCard'] = chance_per_card
-            foil_chance_per_card = chance_per_card * FOIL_CHANCE
-            collections[collection]['foilChancePerCard'] = foil_chance_per_card
+            chance_per_slot = RARITIES[tier] * (1 / num_cards[collection][tier])
+            collections[collection]['chancePerSlot'] = chance_per_slot
+            foil_chance_per_slot = chance_per_slot * FOIL_CHANCE
+            collections[collection]['foilChancePerSlot'] = foil_chance_per_slot
 
-            chance_per_pack = 1 - ((1 - chance_per_card)**5)
+            chance_per_pack = 1 - ((1 - chance_per_slot)**5)
             collections[collection]['chancePerPack'] = chance_per_pack
-            foil_chance_per_pack = 1 - ((1 - foil_chance_per_card)**5)
+            foil_chance_per_pack = 1 - ((1 - foil_chance_per_slot)**5)
             collections[collection]['foilChancePerPack'] = foil_chance_per_pack
 
             expected_packs = math.ceil(1 / chance_per_pack)
@@ -66,14 +66,35 @@ def calculate_chances_no_reselling(cards, num_cards, prices):
 
 def calculate_expected_pack_resale_value(packs, cards):
 
-    for i in range(len(packs)):
-        packs[i]['expectedResaleCredits'] = 0
+    for collection in packs.keys():
+        packs[collection]['expectedCardResaleCredits'] = 0
 
     for card in cards:
 
         for collection in card['collections'].keys():
 
-            pass
+            # resale value per slot = 0.99*card_value*card_probability + 0.01*foil_value*foil_probability
+            packs[collection]['expectedCardResaleCredits'] += (
+                ((1 - FOIL_CHANCE) * card['credits'] * card['collections'][collection]['chancePerSlot']) +
+                (FOIL_CHANCE * card['foilCredits'] * card['collections'][collection]['foilChancePerSlot']) 
+            )
+
+    for collection in packs.keys():
+            packs[collection]['expectedCardResaleCredits'] = math.floor(packs[collection]['expectedCardResaleCredits'])
+            packs[collection]['expectedPackResaleCredits'] = packs[collection]['expectedCardResaleCredits'] * 5
+            packs[collection]['expectedNetPrice'] = packs[collection]['price'] - packs[collection]['expectedPackResaleCredits']
+
+def calculate_net_costs(cards, packs):
+
+    for i in range(len(cards)):
+
+        for collection in cards[i]['collections']:
+
+            expected_net_cost = cards[i]['collections'][collection]['expectedPacks'] * packs[collection]['expectedNetPrice']
+            cards[i]['collections'][collection]['expectedNetCost'] = expected_net_cost
+            foil_expected_net_cost = cards[i]['collections'][collection]['foilExpectedPacks'] * packs[collection]['expectedNetPrice']
+            cards[i]['collections'][collection]['foilExpectedNetCost'] = foil_expected_net_cost
+            
 
 if __name__ == '__main__':
 
@@ -105,6 +126,8 @@ if __name__ == '__main__':
     calculate_chances_no_reselling(cards, num_cards, prices)
 
     calculate_expected_pack_resale_value(packs, cards)
+
+    calculate_net_costs(cards, packs)
 
     catalog = {'cards': cards, 'packs': packs}
 

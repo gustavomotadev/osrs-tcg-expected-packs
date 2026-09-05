@@ -101,11 +101,22 @@ def compute_sell_prices(cards):
         cards[i]['credits'] = max(10, cards[i]['score'] // 200)
         cards[i]['foilCredits'] = max(10, cards[i]['foilScore'] // 200)
 
-def fix_ids(cards):
+def fix_card_ids(cards):
 
     for i in range(len(cards)):
 
         cards[i]['id'] = i
+
+def format_pack_names_as_keys(packs):
+
+    new_packs = {}
+
+    for pack in packs:
+
+        new_packs[pack['collectionName']] = pack
+        new_packs[pack['collectionName']].pop('collectionName')
+
+    return new_packs
 
 if __name__ == '__main__':
 
@@ -148,7 +159,7 @@ if __name__ == '__main__':
         maxId = max(maxId, card['id'])
     print(f'Maximum card id before fix: {maxId}.')
 
-    fix_ids(cards)
+    fix_card_ids(cards)
 
     card_collections = get_collections_from_cards(cards)
 
@@ -188,7 +199,9 @@ if __name__ == '__main__':
     print(f'Credit sell value of regular cards varies from {minNormal} to {maxNormal}.')
     print(f'Credit sell value of foil cards varies from {minFoil} to {maxFoil}.')
 
-    catalog = {'cards': items+npcs, 'packs': packs}
+    packs = format_pack_names_as_keys(packs)
+
+    catalog = {'cards': cards, 'packs': packs}
 
     with open('catalog.json', 'w') as catalog_file:
         json.dump(catalog, catalog_file)
